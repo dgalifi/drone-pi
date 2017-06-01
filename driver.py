@@ -19,6 +19,11 @@ class driver:
         self.MIN = 1000
         self.MAX = 2000
 
+        self.M1Speed = 0
+        self.M2Speed = 0
+        self.M3Speed = 0
+        self.M4Speed = 0
+
     def initialise(self):
         
         self.pi.set_PWM_frequency(self.M1, 1000)
@@ -30,7 +35,6 @@ class driver:
         self.pi.set_PWM_range(self.M3, 1000)
         self.pi.set_PWM_range(self.M4, 1000)
 
-        self.starting = 1
         self.set_speed(0)
 
         print("initialisation...")    
@@ -56,24 +60,24 @@ class driver:
         self.pi.set_servo_pulsewidth(self.M4, self.abs_speed)
 
     def set_pitch_forward(self, value):
-        self.pi.set_servo_pulsewidth(self.M3, self.getSpeed(self.M3) + value)
-        self.pi.set_servo_pulsewidth(self.M4, self.getSpeed(self.M4) + value)
         self.pitches[0] = value
+        self.updateMotorSpeed(self.M3)
+        self.updateMotorSpeed(self.M4)
         
     def set_pitch_back(self, value):
-        self.pi.set_servo_pulsewidth(self.M1, self.getSpeed(self.M1) + value)
-        self.pi.set_servo_pulsewidth(self.M2, self.getSpeed(self.M2) + value)
         self.pitches[1] = value
+        self.updateMotorSpeed(self.M1)
+        self.updateMotorSpeed(self.M2)
         
     def set_pitch_right(self, value):
-        self.pi.set_servo_pulsewidth(self.M1, self.getSpeed(self.M1) + value)
-        self.pi.set_servo_pulsewidth(self.M4, self.getSpeed(self.M4) + value)        
         self.pitches[2] = value
+        self.updateMotorSpeed(self.M1)
+        self.updateMotorSpeed(self.M4)
         
     def set_pitch_left(self, value):
-        self.pi.set_servo_pulsewidth(self.M2, self.getSpeed(self.M2) + value)
-        self.pi.set_servo_pulsewidth(self.M3, self.getSpeed(self.M3) + value)
         self.pitches[3] = value
+        self.updateMotorSpeed(self.M2)
+        self.updateMotorSpeed(self.M3)
         
     def getActualSpeed(self, motor):
         if motor == self.M1:
@@ -85,18 +89,21 @@ class driver:
         else:
             return self.abs_speed + self.trims[0] + self.trims[2] + self.pitches[0] + self.pitches[2]
 
-    def updateMotorSpeed(motor):
-
+    def updateMotorSpeed(self, motor):
         speed = 0
         if motor == self.M1:
             speed = self.abs_speed + self.trims[1] + self.trims[2] + self.pitches[1] + self.pitches[2]
+            self.M1Speed = speed
         if motor == self.M2:
             speed = self.abs_speed + self.trims[1] + self.trims[3] + self.pitches[1] + self.pitches[3]
+            self.M2Speed = speed
         if motor == self.M3:
             speed = self.abs_speed + self.trims[0] + self.trims[3] + self.pitches[0] + self.pitches[3]
+            self.M3Speed = speed
         else:
             speed = self.abs_speed + self.trims[0] + self.trims[2] + self.pitches[0] + self.pitches[2]
-
+            self.M4Speed = speed
+            
          self.pi.set_servo_pulsewidth(motor, speed)
 
     # THROTTLE UP

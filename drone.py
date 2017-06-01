@@ -66,7 +66,7 @@ def check_thread():
     while stop == 0:
         check_orientation()
         print_status()        
-        time.sleep(0.1)
+        #time.sleep(0.1)
         
 def print_status():
     global rotation
