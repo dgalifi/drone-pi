@@ -31,30 +31,22 @@ def adjust(rotation):
 
     pitch_x = pid.get(x)
     pitch_y = pid.get(y)
-    
-    if x < 0 - gap:
-        driver.set_pitch_forward(0)
-        driver.set_pitch_back(pitch_x)
-    else:
-        driver.set_pitch_back(0)
-        
+
     if x > 0 + gap:
-        driver.set_pitch_forward(pitch_x)
-        driver.set_pitch_back(0)
+        driver.pitch('fw', pitch_x)
+    elif x < 0 - gap:
+        driver.pitch('back', pitch_x)
     else:
-        driver.set_pitch_forward(0)
+        driver.pitch('fw', 0)
+        driver.pitch('back', 0)
         
     if y > 0 + gap:
-        driver.set_pitch_left(pitch_y)
-        driver.set_pitch_right(0)
-    else: 
-        driver.set_pitch_left(0)
-        
-    if y < 0 - gap:
-        driver.set_pitch_left(0)
-        driver.set_pitch_right(pitch_y)
+         driver.pitch('left', pitch_y)
+    elif y < 0 - gap:
+        driver.pitch('right', pitch_y)
     else:
-        driver.set_pitch_right(0)
+        driver.pitch('left', 0)
+        driver.pitch('right', 0)
 
 def check_orientation():
         global rotation
@@ -66,7 +58,7 @@ def check_thread():
     while stop == 0:
         check_orientation()
         print_status()        
-        #time.sleep(0.1)
+        time.sleep(0.1)
         
 def print_status():
     global rotation
@@ -78,7 +70,7 @@ def print_status():
     print(str(rotation))
 
 try:
-    calibration = accelerometer.calibration(1000)
+    calibration = accelerometer.calibration(100)
 
     # balance point
     print(calibration)
@@ -87,30 +79,29 @@ try:
     driver.initialise()
     print_status()
     
-    print_status()
-    
     # check thread
     _thread.start_new_thread(check_thread, ())
 
+    input("press any key to stop")
     # main thread waiting for input 
-    while stop == 0:
-        key = str(keyboard.getKey())
-        
-        if key[6:] == "[A'": #up
-            driver.inc_speed(20)
-        elif key[6:] == "[B'": #down
-            driver.dec_speed(20)
-        elif key == "b'w'":
-            driver.trim_forward()
-        elif key == "b's'":
-            driver.trim_back()
-        elif key == "b'a'":
-            driver.trim_left()
-        elif key == "b'd'":
-            driver.trim_right()
-        else:
-            print(key)
-                        
+   #while stop == 0:
+   #    key = str(keyboard.getKey())
+   #    
+   #    if key[6:] == "[A'": #up
+   #        driver.inc_speed(20)
+   #    elif key[6:] == "[B'": #down
+   #        driver.dec_speed(20)
+   #    elif key == "b'w'":
+   #        driver.trim_forward()
+   #    elif key == "b's'":
+   #        driver.trim_back()
+   #    elif key == "b'a'":
+   #        driver.trim_left()
+   #    elif key == "b'd'":
+   #        driver.trim_right()
+   #    else:
+   #        print(key)
+   #                    
     print("end loop")
     driver.off()
 

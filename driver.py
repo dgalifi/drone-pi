@@ -35,14 +35,14 @@ class driver:
         self.pi.set_PWM_range(self.M3, 1000)
         self.pi.set_PWM_range(self.M4, 1000)
 
-        self.set_speed(0)
+        self.set_overall_speed(0)
 
         print("initialisation...")    
         input("disconnect power, press enter to continue")
         
-        self.set_speed(2000)
+        self.set_overall_speed(2000)
         input("connect battery, then press enter when ready")
-        self.set_speed(self.MIN)
+        self.set_overall_speed(self.MIN)
         
         print("ready")
         
@@ -51,60 +51,64 @@ class driver:
 
     # SET SPEED
     # set speed of all the motors to the same value
-    def set_speed(self, pulse):
+    def set_overall_speed(self, pulse):
         self.abs_speed = pulse
         
         self.pi.set_servo_pulsewidth(self.M1, self.abs_speed)
         self.pi.set_servo_pulsewidth(self.M2, self.abs_speed)
         self.pi.set_servo_pulsewidth(self.M3, self.abs_speed)
         self.pi.set_servo_pulsewidth(self.M4, self.abs_speed)
-
-    def set_pitch_forward(self, value):
-        self.pitches[0] = value
-        self.updateMotorSpeed(self.M3)
-        self.updateMotorSpeed(self.M4)
-        
-    def set_pitch_back(self, value):
-        self.pitches[1] = value
-        self.updateMotorSpeed(self.M1)
-        self.updateMotorSpeed(self.M2)
-        
-    def set_pitch_right(self, value):
-        self.pitches[2] = value
-        self.updateMotorSpeed(self.M1)
-        self.updateMotorSpeed(self.M4)
-        
-    def set_pitch_left(self, value):
-        self.pitches[3] = value
-        self.updateMotorSpeed(self.M2)
-        self.updateMotorSpeed(self.M3)
-        
-    def getActualSpeed(self, motor):
-        if motor == self.M1:
-            return self.abs_speed + self.trims[1] + self.trims[2] + self.pitches[1] + self.pitches[2]
-        if motor == self.M2:
-            return self.abs_speed + self.trims[1] + self.trims[3] + self.pitches[1] + self.pitches[3]
-        if motor == self.M3:
-            return self.abs_speed + self.trims[0] + self.trims[3] + self.pitches[0] + self.pitches[3]
+    
+    def pitch(self, direction, value):
+        if direction == 'fw':
+            self.pitches[0] = value
+            self.pitches[1] = 0
+        elif direction == 'back':
+            self.pitches[1] = value
+            self.pitches[0] = 0
+        elif direction == 'right':
+            self.pitches[2] = value
+            self.pitches[3] = 0
         else:
-            return self.abs_speed + self.trims[0] + self.trims[2] + self.pitches[0] + self.pitches[2]
+             self.pitches[3] = value
+             self.pitches[2] = 0
+
+        self.updateMotorSpeed(self.M1)
+        self.updateMotorSpeed(self.M2)
+        self.updateMotorSpeed(self.M3)
+        self.updateMotorSpeed(self.M4)
+        
+    # GET SPEED
+    # get actual speed of a specified motor
+    def getSpeed(self, motor):
+        if motor == self.M1:
+            return self.M1Speed
+        elif motor == self.M2:
+            return self.M2Speed
+        elif motor == self.M3:
+            return self.M3Speed
+        else:
+            return self.M4Speed
 
     def updateMotorSpeed(self, motor):
         speed = 0
         if motor == self.M1:
-            speed = self.abs_speed + self.trims[1] + self.trims[2] + self.pitches[1] + self.pitches[2]
+            speed = self.abs_speed + self.pitches[1] + self.pitches[2]
             self.M1Speed = speed
-        if motor == self.M2:
-            speed = self.abs_speed + self.trims[1] + self.trims[3] + self.pitches[1] + self.pitches[3]
+
+        elif motor == self.M2:
+            speed = self.abs_speed + self.pitches[1] + self.pitches[3]
             self.M2Speed = speed
-        if motor == self.M3:
-            speed = self.abs_speed + self.trims[0] + self.trims[3] + self.pitches[0] + self.pitches[3]
+
+        elif motor == self.M3:
+            speed = self.abs_speed + self.pitches[0] + self.pitches[3]
             self.M3Speed = speed
+
         else:
-            speed = self.abs_speed + self.trims[0] + self.trims[2] + self.pitches[0] + self.pitches[2]
+            speed = self.abs_speed + self.pitches[0] + self.pitches[2]
             self.M4Speed = speed
             
-         self.pi.set_servo_pulsewidth(motor, speed)
+        self.pi.set_servo_pulsewidth(motor, speed)
 
     # THROTTLE UP
     def inc_speed(self, inc):
@@ -113,15 +117,16 @@ class driver:
             if self.abs_speed + max(self.trims) < 2000:
                 self.abs_speed = self.abs_speed + 1
 
-                self.pi.set_servo_pulsewidth(self.M1, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M2, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M3, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M4, self.abs_speed)
+                self.updateMotorSpeed(self.M1)
+                self.updateMotorSpeed(self.M2)
+                self.updateMotorSpeed(self.M3)
+                self.updateMotorSpeed(self.M4)
                 
                 time.sleep(0.01)
                 inc = inc - 1
             else:
                 inc = 0
+    
     
     # THROTTLE DOWN
     def dec_speed(self, dec):
@@ -130,26 +135,27 @@ class driver:
             self.abs_speed = self.abs_speed - 1
             
             if self.abs_speed < 1100:                
-                self.set_speed(1000)
+                self.set_overall_speed(1000)
                 dec = 0
             else:
-                self.pi.set_servo_pulsewidth(self.M1, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M2, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M3, self.abs_speed)
-                self.pi.set_servo_pulsewidth(self.M4, self.abs_speed)
+                self.updateMotorSpeed(self.M1)
+                self.updateMotorSpeed(self.M2)
+                self.updateMotorSpeed(self.M3)
+                self.updateMotorSpeed(self.M4)
 
                 time.sleep(0.01)
                 dec = dec - 1
+    
     
     # OFF
     def off(self):
         while min(self.pulses) > 1000:
             self.dec_speed(50)
             time.sleep(0.001)
-        self.set_speed(0)
+        self.set_overall_speed(0)
         print("off!")
         self.pi.stop()
-
+# needs to be refactored
     def trim_forward(self):
 
         # check trim_back
