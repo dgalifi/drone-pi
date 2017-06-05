@@ -12,13 +12,13 @@ M3 = 19
 M4 = 20
 
 pi = pigpio.pi()
-driver = driver(pi, M1,M2,M3,M4)
+driver = driver(pi, M1,M2,M3,M4,1400)
 pulses = 0
 stop = 0
-pid = pid(10)
+dt = 0.01
+pid = PID(10.0, 4.0, 0.0, dt)
 rotation = [0,0]
 calibration = [0, 0]
-dt = 0.01
 gyro = gyro(dt)
 
 def get_inc(value):
@@ -28,8 +28,8 @@ def adjust(rotation):
     x = rotation[0]
     y = rotation[1]
 
-    pitch_x = pid.get(x)
-    pitch_y = pid.get(y)
+    pitch_x = pid.update(x)
+    pitch_y = pid.update(y)
 
     if x > 0:
         driver.pitch('fw', pitch_x)
@@ -39,7 +39,7 @@ def adjust(rotation):
         driver.pitch('fw', 0)
         driver.pitch('back', 0)
         
-    if y > 0:
+    if y > 0 :
          driver.pitch('left', pitch_y)
     elif y < 0 :
         driver.pitch('right', pitch_y)
@@ -75,7 +75,7 @@ def print_status():
 
 try:
     calibration = gyro.calibrate(100)
-
+    
     # balance point
     print(calibration)
 

@@ -3,7 +3,7 @@ import pigpio
 
 class driver:
 
-    def __init__(self,pi, M1, M2, M3, M4):
+    def __init__(self,pi, M1, M2, M3, M4, max = 2000):
         self.M1 = M1
         self.M2 = M2
         self.M3 = M3
@@ -17,7 +17,7 @@ class driver:
         self.pitches = [0,0,0,0]
 
         self.MIN = 1000
-        self.MAX = 2000
+        self.MAX = max
 
         self.M1Speed = 0
         self.M2Speed = 0
@@ -52,7 +52,11 @@ class driver:
     # SET SPEED
     # set speed of all the motors to the same value
     def set_overall_speed(self, pulse):
-        self.abs_speed = pulse
+
+        if pulse > self.MAX:
+            self.abs_speed = self.MAX
+        else:
+            self.abs_speed = pulse
         
         self.pi.set_servo_pulsewidth(self.M1, self.abs_speed)
         self.pi.set_servo_pulsewidth(self.M2, self.abs_speed)
@@ -73,10 +77,7 @@ class driver:
              self.pitches[3] = value
              self.pitches[2] = 0
 
-        self.updateMotorSpeed(self.M1)
-        self.updateMotorSpeed(self.M2)
-        self.updateMotorSpeed(self.M3)
-        self.updateMotorSpeed(self.M4)
+        self.updateMotorSpeed()
         
     # GET SPEED
     # get actual speed of a specified motor
@@ -90,25 +91,32 @@ class driver:
         else:
             return self.M4Speed
 
-    def updateMotorSpeed(self, motor):
-        speed = 0
-        if motor == self.M1:
-            speed = self.abs_speed + self.pitches[1] + self.pitches[2]
-            self.M1Speed = speed
+    def updateMotorSpeed(self):
+        
+        m1 = self.abs_speed + self.pitches[1] + self.pitches[2]
+        if m1 > self.MAX:
+            m1 = self.MAX
+        self.M1Speed = m1
+    
+        m2 = self.abs_speed + self.pitches[1] + self.pitches[3]
+        if m2 > self.MAX:
+            m2 = self.MAX
+        self.M2Speed = m2
 
-        elif motor == self.M2:
-            speed = self.abs_speed + self.pitches[1] + self.pitches[3]
-            self.M2Speed = speed
+        m3 = self.abs_speed + self.pitches[0] + self.pitches[3]
+        if m3 > self.MAX:
+            m3 = self.MAX
+        self.M3Speed = m3
 
-        elif motor == self.M3:
-            speed = self.abs_speed + self.pitches[0] + self.pitches[3]
-            self.M3Speed = speed
-
-        else:
-            speed = self.abs_speed + self.pitches[0] + self.pitches[2]
-            self.M4Speed = speed
-            
-        self.pi.set_servo_pulsewidth(motor, speed)
+        m4 = self.abs_speed + self.pitches[0] + self.pitches[2]
+        if m4 > self.MAX:
+            m4 = self.MAX
+        self.M4Speed = m4
+        
+        self.pi.set_servo_pulsewidth(self.M1, self.M1Speed)
+        self.pi.set_servo_pulsewidth(self.M2, self.M2Speed)
+        self.pi.set_servo_pulsewidth(self.M3, self.M3Speed)
+        self.pi.set_servo_pulsewidth(self.M4, self.M4Speed)
 
     # THROTTLE UP
     def inc_speed(self, inc):
@@ -117,10 +125,7 @@ class driver:
             if self.abs_speed + max(self.trims) < 2000:
                 self.abs_speed = self.abs_speed + 1
 
-                self.updateMotorSpeed(self.M1)
-                self.updateMotorSpeed(self.M2)
-                self.updateMotorSpeed(self.M3)
-                self.updateMotorSpeed(self.M4)
+                self.updateMotorSpeed()
                 
                 time.sleep(0.01)
                 inc = inc - 1
@@ -138,10 +143,7 @@ class driver:
                 self.set_overall_speed(1000)
                 dec = 0
             else:
-                self.updateMotorSpeed(self.M1)
-                self.updateMotorSpeed(self.M2)
-                self.updateMotorSpeed(self.M3)
-                self.updateMotorSpeed(self.M4)
+                self.updateMotorSpeed()
 
                 time.sleep(0.01)
                 dec = dec - 1

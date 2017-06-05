@@ -91,12 +91,16 @@ class gyro:
             yval = 0
             val = [0,0]
             accel_out = [0,0,0]
+            xy_dt = [0,0]
 
             input("press any key to start calibration")
             
             for i in range(0,samples):
-            
-                val = self.getAccelerometerAngles()
+                
+                gyroData = self.getGyroData()        
+                accAngles = self.getAccelerometerAngles()
+
+                val = self.comp_filter(val[0], val[1], accAngles, gyroData)
 
                 values.append(val)
                 xval = xval + val[0]
