@@ -12,11 +12,12 @@ M3 = 19
 M4 = 20
 
 pi = pigpio.pi()
-driver = driver(pi, M1,M2,M3,M4,1400)
+driver = driver(pi, M1,M2,M3,M4,1500)
 pulses = 0
 stop = 0
 dt = 0.01
-pid = PID(10.0, 4.0, 0.0, dt)
+pid_x = PID(3.0, 0.4, 0.2, dt)
+pid_y = PID(0.0, 0.0, 0.0, dt)
 rotation = [0,0]
 calibration = [0, 0]
 gyro = gyro(dt)
@@ -28,16 +29,21 @@ def adjust(rotation):
     x = rotation[0]
     y = rotation[1]
 
-    pitch_x = pid.update(x)
-    pitch_y = pid.update(y)
+    pitch_x = pid_x.update(x)
+    pitch_y = pid_y.update(y)
 
-    if x > 0:
-        driver.pitch('fw', pitch_x)
-    elif x < 0 :
-        driver.pitch('back', pitch_x)
-    else:
-        driver.pitch('fw', 0)
-        driver.pitch('back', 0)
+    if x > 60:
+        driver.off()
+        stop = 1
+        return
+
+    # if x > 0:
+    driver.pitch('back', pitch_x)
+    # elif x < 0 :
+    #     driver.pitch('back', pitch_x)
+    # else:
+    #     driver.pitch('fw', 0)
+    #     driver.pitch('back', 0)
         
     if y > 0 :
          driver.pitch('left', pitch_y)
@@ -74,11 +80,11 @@ def print_status():
     print(str(rotation))
 
 try:
-    calibration = gyro.calibrate(100)
+    #calibration = gyro.calibrate(100)
     
     # balance point
-    print(calibration)
-
+    #print(calibration)
+    pid_x.setPoint(0)
     # initialise driver
     driver.initialise()
     print_status()
@@ -91,9 +97,9 @@ try:
       key = str(keyboard.getKey())
       
       if key[6:] == "[A'": #up
-          driver.inc_speed(20)
+          driver.inc_speed(2)
       elif key[6:] == "[B'": #down
-          driver.dec_speed(20)
+          driver.dec_speed(2)
       elif key == "b'w'":
           driver.trim_forward()
       elif key == "b's'":

@@ -1,28 +1,25 @@
 from gyro import *
 
-xy_dt = [0,0]
-gyroData = [0,0,0]
-accel_out = [0,0,0]
+
+gyro = gyro(0.1)
+
+start = gyro.gyro_start_x
+print("avg: ", start)
+x = 0
+current_time = time.time()
+last_time = current_time
 
 while 1:
-    gyro_xout = read_word_2c(0x43)
-    gyro_yout = read_word_2c(0x45)
-    gyro_zout = read_word_2c(0x47)
-
-    gyroData[0] = gyro_xout / 131
-    gyroData[1] = gyro_yout / 131
-    gyroData[2] = gyro_zout / 131
+    current_time = time.time()
+    dt = current_time - last_time
     
-    accel_out[0] = read_word_2c(0x3b)
-    accel_out[1] = read_word_2c(0x3d)
-    accel_out[2] = read_word_2c(0x3f)
-    
-    xy_dt = comp_filter(xy_dt[0],xy_dt[1],accel_out, gyroData)
-
+    gData = gyro.getGyroData()
     os.system('clear')
-    print "gyro data"
-    print "---------"
-    print "x: ", xy_dt[0]
-    print "y: ", xy_dt[1]
+    
+    print("gyro data")
+    print("---------")
+    print("x: ", gData[0])
+    x += (gData[0] * dt)
+    print("angle: ", x)
 
-    time.sleep(dt)
+    last_time = current_time

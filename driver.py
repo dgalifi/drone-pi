@@ -48,7 +48,8 @@ class driver:
         
         input("press enter to start")
 
-
+        self.set_overall_speed(1100)
+        
     # SET SPEED
     # set speed of all the motors to the same value
     def set_overall_speed(self, pulse):

@@ -6,7 +6,8 @@ import os
 # Power management registers
 power_mgmt_1 = 0x6b
 power_mgmt_2 = 0x6c
-class accelerometer:
+
+class gyro:
 
     def __init__(self):
         self.bus = smbus.SMBus(1) # or bus = smbus.SMBus(1) for Revision 2 boards
