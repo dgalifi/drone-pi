@@ -5,6 +5,7 @@ import keyboard
 from gyro import *
 from driver import *
 from pid import *
+import os
 
 M1 = 17
 M2 = 18
@@ -20,7 +21,7 @@ pid_x = PID(3.0, 0.4, 0.2, dt)
 pid_y = PID(0.0, 0.0, 0.0, dt)
 rotation = [0,0]
 calibration = [0, 0]
-gyro = gyro(dt)
+gyro = gyro()
 
 def get_inc(value):
     return value
@@ -58,20 +59,29 @@ def check_thread():
     xy_dt = [0,0]
     gyroData = [0,0,0]
     accel_out = [0,0,0]  
+    x_gyro = 0
+    current_time = time.time()
+    last_time = current_time
 
     while stop == 0:
-        gyroData = gyro.getGyroData()        
-        accAngles = gyro.getAccelerometerAngles()
-        
+        current_time = time.time()
+        dt = current_time - last_time
+
+        gyroData = gyro.getGyroData()     
+        # accAngles = gyro.getAccelerometerAngles()
+        x_gyro += (gyroData[0] * dt)
         # get orientation
-        xy_dt = gyro.comp_filter(xy_dt[0],xy_dt[1],accAngles, gyroData)
-        rotation = [xy_dt[0] - calibration[0] , xy_dt[1] - calibration[1]]
+        
+        rotation = [x_gyro, 0]
+        
         adjust(rotation)
-        print_status()        
-        time.sleep(dt)
+        print_status()
+        last_time = current_time
+
         
 def print_status():
     global rotation
+    os.system('clear')
     print("---------------")
     print("| " + str(driver.getSpeed(M1))  + " | " + str(driver.getSpeed(M2)) + " |")
     print("---------------")

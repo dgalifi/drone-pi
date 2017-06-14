@@ -64,9 +64,7 @@ while 1:
     scaled = gyro_xout / 65.5
     print "gyro_xout: ", gyro_xout, " scaled: ", scaled
 
-    
     current_time = time.time()
-    
     delta = current_time - last_time
     x += (scaled * delta)
     print("angle: ", x)

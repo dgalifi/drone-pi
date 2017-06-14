@@ -1,7 +1,7 @@
 from gyro import *
 
 
-gyro = gyro(0.1)
+gyro = gyro()
 
 start = gyro.gyro_start_x
 print("avg: ", start)

@@ -7,11 +7,11 @@ import time
 
 class gyro:
 
-    def __init__(self, dt):
+    def __init__(self):
         # Power management registers
         power_mgmt_1 = 0x6b
         power_mgmt_2 = 0x6c
-        self.dt = dt
+        
         self.acc_sensitivity = 16384.0
         self.gyro_sensitivity = 65.5
 
@@ -28,6 +28,7 @@ class gyro:
 
         sumGyro = [0,0,0]
         dataGyro= [0,0,0]
+        
         for i in range(0, 2000):
             dataGyro[0] = self.read_word_2c(0x43)
             sumGyro[0] += dataGyro[0]
@@ -68,7 +69,6 @@ class gyro:
             yval = 0
             val = [0,0]
             accel_out = [0,0,0]
-            xy_dt = [0,0]
 
             input("press any key to start calibration")
             
