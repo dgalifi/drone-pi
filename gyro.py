@@ -12,7 +12,7 @@ class gyro:
         power_mgmt_1 = 0x6b
         power_mgmt_2 = 0x6c
         
-        self.acc_sensitivity = 16384.0
+        self.acc_sensitivity = 8192.0
         self.gyro_sensitivity = 65.5
 
         self.bus = smbus.SMBus(1) # or bus = smbus.SMBus(1) for Revision 2 boards
@@ -23,18 +23,32 @@ class gyro:
 
         GYRO_CONFIG_REGISTER = 0x1B
         GYRO_500DEG = 0x08
-
         self.bus.write_byte_data(self.address, GYRO_CONFIG_REGISTER, GYRO_500DEG)
+        
+        ACCEL_CONFIG_REGISTER = 0x1C
+        ACCEL_4G = 0x08
+
+        self.bus.write_byte_data(self.address, ACCEL_CONFIG_REGISTER, ACCEL_4G)
 
         sumGyro = [0,0,0]
-        dataGyro= [0,0,0]
-        
-        for i in range(0, 2000):
+        dataGyro = [0,0,0]
+        sumAcc = [0,0]
+        dataAcc = [0,0]
+
+        self.acc_start_x = 0
+        self.acc_start_y = 0
+
+        samples_for_calibration = 1000
+
+        for i in range(0, samples_for_calibration):
             dataGyro[0] = self.read_word_2c(0x43)
             sumGyro[0] += dataGyro[0]
+
+            dataAcc = self.getAccData()
+            sumAcc[0] += dataAcc[0]
             
-        self.gyro_start_x = sumGyro[0] / 2000
-        
+        self.gyro_start_x = sumGyro[0] / samples_for_calibration
+        self.acc_start_x = sumAcc[0] / samples_for_calibration
 
     def read_byte(self, adr):
         return self.bus.read_byte_data(self.address, adr)
@@ -62,6 +76,37 @@ class gyro:
         gyroData = [0,0,0]
         gyroData[0] = (gyro_xout - self.gyro_start_x) / self.gyro_sensitivity
         return gyroData
+    
+    def getCalibratedAccData(self):
+        accData = self.getAccData()
+        return [accData[0] - self.acc_start_x, accData[1] - self.acc_start_y]
+
+
+    def getAccData(self):
+        accel_xout = self.read_word_2c(0x3b)
+        accel_yout = self.read_word_2c(0x3d)
+        accel_zout = self.read_word_2c(0x3f)
+
+        out_scaled = [0,0,0]
+        out_scaled[0] = accel_xout / self.acc_sensitivity
+        out_scaled[1] = accel_yout / self.acc_sensitivity
+        out_scaled[2] = accel_zout / self.acc_sensitivity
+
+        xy = [0,0]
+        xy[0] = self.get_x_rotation(out_scaled[0], out_scaled[1], out_scaled[2])
+        xy[1] = self.get_y_rotation(out_scaled[0], out_scaled[1], out_scaled[2])
+        return xy
+
+    def get_y_rotation(self, x,y,z):
+        radians = math.atan2(x, self.dist(y,z))
+        return -math.degrees(radians)
+
+    def get_x_rotation(self, x,y,z):
+        radians = math.atan2(y, self.dist(x,z))
+        return math.degrees(radians)
+    
+    def dist(self,a,b):
+        return math.sqrt((a*a)+(b*b))
 
     def calibrate(self, samples):
             values = []

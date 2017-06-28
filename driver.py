@@ -14,7 +14,7 @@ class driver:
         
         # f b r l
         self.trims = [0,0,0,0]
-        self.pitches = [0,0,0,0]
+        self.pitches = [0,0]
 
         self.MIN = 1000
         self.MAX = max
@@ -48,7 +48,7 @@ class driver:
         
         input("press enter to start")
 
-        self.set_overall_speed(1100)
+        self.set_overall_speed(1120)
         
     # SET SPEED
     # set speed of all the motors to the same value
@@ -65,18 +65,8 @@ class driver:
         self.pi.set_servo_pulsewidth(self.M4, self.abs_speed)
     
     def pitch(self, direction, value):
-        if direction == 'fw':
+        if direction == 'x':
             self.pitches[0] = value
-            self.pitches[1] = 0
-        elif direction == 'back':
-            self.pitches[1] = value
-            self.pitches[0] = 0
-        elif direction == 'right':
-            self.pitches[2] = value
-            self.pitches[3] = 0
-        else:
-             self.pitches[3] = value
-             self.pitches[2] = 0
 
         self.updateMotorSpeed()
         
@@ -94,24 +84,32 @@ class driver:
 
     def updateMotorSpeed(self):
         
-        m1 = self.abs_speed + self.pitches[1] + self.pitches[2]
+        m1 = self.abs_speed + self.pitches[0]
         if m1 > self.MAX:
             m1 = self.MAX
+        elif m1 < 1100:
+            m1 = 1100
         self.M1Speed = m1
     
-        m2 = self.abs_speed + self.pitches[1] + self.pitches[3]
+        m2 = self.abs_speed + self.pitches[0]
         if m2 > self.MAX:
             m2 = self.MAX
+        elif m2 < 1100:
+            m2 = 1100
         self.M2Speed = m2
 
-        m3 = self.abs_speed + self.pitches[0] + self.pitches[3]
+        m3 = self.abs_speed - self.pitches[0]
         if m3 > self.MAX:
             m3 = self.MAX
+        elif m3 < 1100:
+            m3 = 1100
         self.M3Speed = m3
 
-        m4 = self.abs_speed + self.pitches[0] + self.pitches[2]
+        m4 = self.abs_speed - self.pitches[0]
         if m4 > self.MAX:
             m4 = self.MAX
+        elif m4 < 1100:
+            m4 = 1100
         self.M4Speed = m4
         
         self.pi.set_servo_pulsewidth(self.M1, self.M1Speed)

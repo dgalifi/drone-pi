@@ -18,8 +18,12 @@ pulses = 0
 stop = 0
 start = 0
 
-pid_x = PID(1.0, 1.2, 9.0)
-# pid_y = PID(0.0, 0.0, 0.0, dt)
+p = 0.0
+i = 0.0
+d = 0.0
+
+pid_x = PID()
+
 rotation = [0,0]
 calibration = [0, 0]
 gyro = gyro()
@@ -28,31 +32,18 @@ def get_inc(value):
     return value
 
 def adjust(rotation, dt):
+    global p
+    global i
+    global d
     x = rotation[0]
     y = rotation[1]
 
-    pitch_x = pid_x.update(x, dt)
-    # pitch_y = pid_y.update(y)
-
-    # if x > 60:
-    #     driver.off()
-    #     stop = 1
-    #     return
-    
-    # print('pitch_x: ', pitch_x)
+    pitch_x = pid_x.update(x, dt, p, i, d)
 
     if x != 0:
         driver.pitch('x', pitch_x)
     else:
         driver.pitch('x', 0)
-        
-    #if y > 0 :
-    #     driver.pitch('left', pitch_y)
-    #elif y < 0 :
-    #    driver.pitch('right', pitch_y)
-    #else:
-    #    driver.pitch('left', 0)
-    #    driver.pitch('right', 0)
         
 def check_thread():
     global rotation
@@ -79,23 +70,21 @@ def check_thread():
         
         # start printing status
         if start == 1:
-            # adjust(rotation, dt)
-            print_status()
+            adjust(rotation, dt)
 
         last_time = current_time
 
 def print_status():
-    global rotation
+    global p
+    global i
+    global d
     os.system('clear')
-    print("---------------")
-    print("| " + str(driver.getSpeed(M1))  + " | " + str(driver.getSpeed(M2)) + " |")
-    print("---------------")
-    print("| " + str(driver.getSpeed(M4))  + " | " + str(driver.getSpeed(M3)) + " |")
-    print("---------------")
-    print(str(rotation))
-
+    print("----------------------")
+    print("|  P    |   I   |   D   |")
+    print("--------------------")
+    print("|  " + str(p) + "  |  "+ str(i) + "   |  " + str(d) +  "  |")
+    print("----------------------")
 try:
-    #calibration = gyro.calibrate(100)
     # balance point
     pid_x.setPoint(0)
 
@@ -109,22 +98,31 @@ try:
 
     # main thread waiting for input 
     while stop == 0:
-      key = str(keyboard.getKey())
+        print_status()
+
+        key = str(keyboard.getKey())
       
-      if key[6:] == "[A'": #up
-          driver.inc_speed(2)
-      elif key[6:] == "[B'": #down
-          driver.dec_speed(2)
-      elif key == "b'w'":
-          driver.trim_forward()
-      elif key == "b's'":
-          driver.trim_back()
-      elif key == "b'a'":
-          driver.trim_left()
-      elif key == "b'd'":
-          driver.trim_right()
-      else:
-          print(key)
+        if key[6:] == "[A'": #up
+            driver.inc_speed(2)
+        elif key[6:] == "[B'": #down
+            driver.dec_speed(2)
+        elif key == "b'p'":
+            try:
+                p = float(input("enter value for P"))
+            except:
+                print('invalid')
+        elif key == "b'i'":
+            try:
+                i = float(input("enter value for I"))
+            except:
+                print('invalid')
+        elif key == "b'd'":
+            try:
+                d = float(input("enter value for D"))
+            except:
+                print('invalid')
+        else:
+            print(key)
                       
     print("end loop")
     driver.off()
@@ -134,7 +132,3 @@ except KeyboardInterrupt:
     print("you hit ctrl-c")
     stop = 1
     driver.off()
-    
-#except:
-   # print("generic exception")
-   # driver.off()  
