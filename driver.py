@@ -1,5 +1,6 @@
 import time
 import pigpio
+# test ssh
 
 class driver:
 
@@ -48,7 +49,7 @@ class driver:
         
         input("press enter to start")
 
-        self.set_overall_speed(1120)
+        self.set_overall_speed(1170)
         
     # SET SPEED
     # set speed of all the motors to the same value

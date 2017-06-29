@@ -40,13 +40,13 @@ class gyro:
 
         samples_for_calibration = 1000
 
-        for i in range(0, samples_for_calibration):
-            dataGyro[0] = self.read_word_2c(0x43)
-            sumGyro[0] += dataGyro[0]
+        # for i in range(0, samples_for_calibration):
+        #     dataGyro[0] = self.read_word_2c(0x43)
+        #     sumGyro[0] += dataGyro[0]
 
-            dataAcc = self.getAccData()
-            sumAcc[0] += dataAcc[0]
-            
+        #     dataAcc = self.getAccData()
+        #     sumAcc[0] += dataAcc[0]
+
         self.gyro_start_x = sumGyro[0] / samples_for_calibration
         self.acc_start_x = sumAcc[0] / samples_for_calibration
 

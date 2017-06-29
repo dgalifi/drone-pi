@@ -64,7 +64,7 @@ def check_thread():
         gyroData = gyro.getGyroData()     
         aData = gyro.getCalibratedAccData()
 
-        x_gyro += ((gyroData[0] * 0.9996) + (aData[0] * 0.0004)) * dt 
+        x_gyro += (gyroData[0] * 0.9996 * dt) + (aData[0] * 0.0004) 
         
         rotation = [x_gyro, 0]
         
@@ -84,11 +84,11 @@ def print_status():
     print("--------------------")
     print("|  " + str(p) + "  |  "+ str(i) + "   |  " + str(d) +  "  |")
     print("----------------------")
+    print("x : ", x_gyro)
 try:
     # balance point
     pid_x.setPoint(0)
 
-    print("avg: ", gyro.gyro_start_x)
     # check thread
     _thread.start_new_thread(check_thread, ())
 
