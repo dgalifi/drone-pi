@@ -16,7 +16,6 @@ pi = pigpio.pi()
 driver = driver(pi, M1,M2,M3,M4,1500)
 pulses = 0
 stop = 0
-start = 0
 
 pid_x = PID(1.0, 1.2, 9.0)
 # pid_y = PID(0.0, 0.0, 0.0, dt)
@@ -105,7 +104,7 @@ try:
 
     # initialise driver
     driver.initialise()
-    start = 1
+    driver.set_overall_speed(1100)
 
     # main thread waiting for input 
     while stop == 0:

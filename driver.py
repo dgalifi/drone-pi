@@ -48,9 +48,7 @@ class driver:
         print("ready")
         
         input("press enter to start")
-
-        self.set_overall_speed(1170)
-        
+                
     # SET SPEED
     # set speed of all the motors to the same value
     def set_overall_speed(self, pulse):
@@ -157,6 +155,8 @@ class driver:
         self.set_overall_speed(0)
         print("off!")
         self.pi.stop()
+
+        
 # needs to be refactored
     def trim_forward(self):
 

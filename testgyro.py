@@ -9,9 +9,7 @@ try:
 
     gyro = gyro()
 
-    start = gyro.gyro_start_x
-    print("avg: ", start)
-    x = 0
+    x_angle = 0
 
     stop = 0
     setGyroAngles = 0
@@ -26,50 +24,37 @@ try:
     print("acc calib: ", gyro.acc_start_x)
     print("aData: ", aData)
 
-    with open('acc_values.txt', 'w') as f:
+    with open('values.txt', 'w') as f:
         
+        f.write("gyro angle x" + "     " + "composite filter x\n")
         while stop == 0:
             current_time = time.time()
             dt = current_time - last_time
+            last_time = current_time
 
             aData = gyro.getAccData()   
             gData = gyro.getGyroData()
+
+            if setGyroAngles == 0:
+                x_angle = aData[0]
+                x_gyro = aData[0]
+            else:
+                x_gyro = x_gyro + gData[0] * dt
+                x_angle = 0.98 * (x_angle + gData[0] * dt) + 0.02 * (aData[0])
             
-            x +=  (gData[0] * dt * 0.96) + (aData[0] * 0.04)
             
-            # f.write(str(aData[0])+"\n")
-            f.write(str(dt)+"\n")
+            f.write(str(x_gyro) + "     " + str(x_angle) +"\n")
             print("dt: ", dt)
 
-            last_time = current_time
+            os.system('clear')
             
-        # current_time = time.time()
-        
-        # dt = current_time - last_time
+            print("gyro angle")
+            print("---------")
+            print("x: ", round(x_gyro, 2))
 
-        # if setGyroAngles == 1:
-        #     x +=  (gData[0] * dt * 0.96) + (aData[0] * 0.04)
-        # else:
-        #     x = aData[0]
-        #     setGyroAngles = 1
-        
-        # output[0] = (output[0] * 0.9) + (x * 0.1)
-
-        # os.system('clear')
-        
-        # print("gyro data")
-        # print("---------")
-        # print("x angle: ", round(x, 2))
-        # print("")
-        # print("acc data")
-        # print("---------")
-        # print("x angle: ", round(aData[0], 2))
-        # print("")
-        # print("comp filter")
-        # print("---------")
-        # print("out_x: ", round(output[0], 2))
-
-        # last_time = current_time
+            print("composite filter angle")
+            print("---------")
+            print("x: ", round(x_angle, 2))
         
 except KeyboardInterrupt:
     print("you hit ctrl-c")

@@ -7,7 +7,7 @@ import time
 
 class gyro:
 
-    def __init__(self):
+    def __init__(self, calibration_samples = 1000):
         # Power management registers
         power_mgmt_1 = 0x6b
         power_mgmt_2 = 0x6c
@@ -30,25 +30,17 @@ class gyro:
 
         self.bus.write_byte_data(self.address, ACCEL_CONFIG_REGISTER, ACCEL_4G)
 
-        sumGyro = [0,0,0]
-        dataGyro = [0,0,0]
         sumAcc = [0,0]
         dataAcc = [0,0]
 
         self.acc_start_x = 0
         self.acc_start_y = 0
 
-        samples_for_calibration = 1000
+        for i in range(0, calibration_samples):
+            dataAcc = self.getAccData()
+            sumAcc[0] += dataAcc[0]
 
-        # for i in range(0, samples_for_calibration):
-        #     dataGyro[0] = self.read_word_2c(0x43)
-        #     sumGyro[0] += dataGyro[0]
-
-        #     dataAcc = self.getAccData()
-        #     sumAcc[0] += dataAcc[0]
-
-        self.gyro_start_x = sumGyro[0] / samples_for_calibration
-        self.acc_start_x = sumAcc[0] / samples_for_calibration
+        self.acc_start_x = sumAcc[0] / calibration_samples
 
     def read_byte(self, adr):
         return self.bus.read_byte_data(self.address, adr)
@@ -66,15 +58,11 @@ class gyro:
         else:
             return val
 
-    
-
-
-
     def getGyroData(self):
         gyro_xout = self.read_word_2c(0x43)
         
         gyroData = [0,0,0]
-        gyroData[0] = (gyro_xout - self.gyro_start_x) / self.gyro_sensitivity
+        gyroData[0] = gyro_xout / self.gyro_sensitivity
         return gyroData
     
     def getCalibratedAccData(self):
