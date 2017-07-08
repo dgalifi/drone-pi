@@ -16,6 +16,7 @@ pi = pigpio.pi()
 driver = driver(pi, M1,M2,M3,M4,1500)
 pulses = 0
 stop = 0
+start = 0
 
 pid_x = PID(1.0, 1.2, 9.0)
 # pid_y = PID(0.0, 0.0, 0.0, dt)
@@ -97,14 +98,14 @@ try:
     #calibration = gyro.calibrate(100)
     # balance point
     pid_x.setPoint(0)
-
-    print("avg: ", gyro.gyro_start_x)
     # check thread
     _thread.start_new_thread(check_thread, ())
 
     # initialise driver
     driver.initialise()
     driver.set_overall_speed(1100)
+
+    start = 1
 
     # main thread waiting for input 
     while stop == 0:

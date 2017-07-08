@@ -12,15 +12,18 @@ try:
     x_angle = 0
 
     stop = 0
-    setGyroAngles = 0
-    output = [0,0]
 
-   # driver.initialise()
     last_time =  time.time()
     
     aData = gyro.getAccData()                
     gData = gyro.getGyroData()
     
+    x_angle = aData[0]
+    x_gyro = aData[0]
+
+    driver.initialise()
+    driver.set_overall_speed(1120)
+
     print("acc calib: ", gyro.acc_start_x)
     print("aData: ", aData)
 
@@ -35,13 +38,8 @@ try:
             aData = gyro.getAccData()   
             gData = gyro.getGyroData()
 
-            if setGyroAngles == 0:
-                x_angle = aData[0]
-                x_gyro = aData[0]
-            else:
-                x_gyro = x_gyro + gData[0] * dt
-                x_angle = 0.98 * (x_angle + gData[0] * dt) + 0.02 * (aData[0])
-            
+            x_gyro = x_gyro + gData[0] * dt
+            x_angle = 0.98 * (x_angle + gData[0] * dt) + 0.02 * (aData[0])
             
             f.write(str(x_gyro) + "     " + str(x_angle) +"\n")
             print("dt: ", dt)
