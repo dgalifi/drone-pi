@@ -7,9 +7,6 @@ from driver import *
 from pid import *
 import os
 
-def get_inc(value):
-    return value
-
 def adjust(rotation, dt):
     x = x_angle
 
@@ -87,7 +84,7 @@ i = 0.0
 d = 0.0
 set_angle = 0
 
-pid_x = PID()
+pid_x = PID(3,0.4,0.5)
 
 calibration = [0, 0]
 gyro = gyro()
@@ -159,3 +156,5 @@ except KeyboardInterrupt:
     print("you hit ctrl-c")
     stop = 1
     driver.off()
+except Exception as e:
+    print(str(e))

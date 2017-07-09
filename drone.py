@@ -7,6 +7,59 @@ from driver import *
 from pid import *
 import os
 
+def adjust(rotation, dt):
+    x = rotation[0]
+    y = rotation[1]
+
+    pitch_x = pid_x.update(x, dt)
+    #pitch_y 
+
+    if x != 0:
+        driver.pitch('x', pitch_x)
+    else:
+        driver.pitch('x', 0)
+        
+def check_thread():
+    global angles
+    global stop
+
+    current_time = time.time()
+    last_time = current_time
+    firstround = 1 
+    dt = 0.03
+
+    while stop == 0:
+        current_time = time.time()
+
+        # get orientation
+        aData = gyro.getAccData()   
+        gData = gyro.getGyroData()
+
+        angles[0] = 0.98 * (angles[0] + gData[0] * dt) + 0.02 * (aData[0])
+        #angles[1]
+
+        if firstround == 1:
+            firstround = 0
+        else:
+            adjust(angles, dt)
+            sl = time.time() - current_time
+            # print_status()
+
+            if sl <= dt:
+                time.sleep(dt - sl)
+            else:
+                print("out of range")
+
+def print_status():
+    global angles
+    os.system('clear')
+    print("---------------")
+    print("| " + str(driver.getSpeed(M1))  + " | " + str(driver.getSpeed(M2)) + " |")
+    print("---------------")
+    print("| " + str(driver.getSpeed(M4))  + " | " + str(driver.getSpeed(M3)) + " |")
+    print("---------------")
+    print(str(angles))
+
 M1 = 17
 M2 = 18
 M3 = 19
@@ -18,94 +71,34 @@ pulses = 0
 stop = 0
 start = 0
 
-pid_x = PID(1.0, 1.2, 9.0)
+pid_x = PID(3, 0.4, 0.5)
 # pid_y = PID(0.0, 0.0, 0.0, dt)
-rotation = [0,0]
+
+angles = [0,0]
 calibration = [0, 0]
 gyro = gyro()
 
-def get_inc(value):
-    return value
-
-def adjust(rotation, dt):
-    x = rotation[0]
-    y = rotation[1]
-
-    pitch_x = pid_x.update(x, dt)
-    # pitch_y = pid_y.update(y)
-
-    # if x > 60:
-    #     driver.off()
-    #     stop = 1
-    #     return
-    
-    # print('pitch_x: ', pitch_x)
-
-    if x != 0:
-        driver.pitch('x', pitch_x)
-    else:
-        driver.pitch('x', 0)
-        
-    #if y > 0 :
-    #     driver.pitch('left', pitch_y)
-    #elif y < 0 :
-    #    driver.pitch('right', pitch_y)
-    #else:
-    #    driver.pitch('left', 0)
-    #    driver.pitch('right', 0)
-        
-def check_thread():
-    global rotation
-    global stop
-    global start
-    xy_dt = [0,0]
-    gyroData = [0,0,0]
-    accel_out = [0,0,0]  
-    x_gyro = 0
-    current_time = time.time()
-    last_time = current_time
-
-    while stop == 0:
-        current_time = time.time()
-        dt = current_time - last_time
-
-        # get orientation
-        gyroData = gyro.getGyroData()     
-        aData = gyro.getCalibratedAccData()
-
-        x_gyro += ((gyroData[0] * 0.9996) + (aData[0] * 0.0004)) * dt 
-        
-        rotation = [x_gyro, 0]
-        
-        # start printing status
-        if start == 1:
-            # adjust(rotation, dt)
-            print_status()
-
-        last_time = current_time
-
-def print_status():
-    global rotation
-    os.system('clear')
-    print("---------------")
-    print("| " + str(driver.getSpeed(M1))  + " | " + str(driver.getSpeed(M2)) + " |")
-    print("---------------")
-    print("| " + str(driver.getSpeed(M4))  + " | " + str(driver.getSpeed(M3)) + " |")
-    print("---------------")
-    print(str(rotation))
+aData = [0,0]
+gData = [0,0,0]
 
 try:
-    #calibration = gyro.calibrate(100)
     # balance point
     pid_x.setPoint(0)
-    # check thread
-    _thread.start_new_thread(check_thread, ())
 
+    aData = gyro.getAccData()                
+    gData = gyro.getGyroData()
+    
+    angles[0] = aData[0]
+    # angles[1] = aData[1]
+    
     # initialise driver
     driver.initialise()
     driver.set_overall_speed(1100)
 
     start = 1
+
+     # check thread
+    _thread.start_new_thread(check_thread, ())
 
     # main thread waiting for input 
     while stop == 0:
@@ -135,6 +128,6 @@ except KeyboardInterrupt:
     stop = 1
     driver.off()
     
-#except:
-   # print("generic exception")
-   # driver.off()  
+except Exception as e:
+    print(str(e))
+    driver.off() 
